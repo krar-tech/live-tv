@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>لايف سبورت — نسخة محسنة (بالمفضلات + الأخبار)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#26A69A" />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --accent:#26A69A; --accent-2:#4DB6AC; --bg1:#071021; --bg2:#0F1B2B;
+      --glass: rgba(255,255,255,0.04); --text:#E8FFF9; --muted:#BFECE4;
+      --max-width:980px; --card-radius:14px; --transition:220ms;
+      --iframe-shift:-80px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;padding:0;background:linear-gradient(120deg,var(--bg1),var(--bg2));font-family:'Tajawal',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+    a{color:var(--accent-2);text-decoration:none}
+
+    /* header */
+    header{position:sticky;top:0;z-index:140;padding:10px 16px;display:flex;align-items:center;gap:12px;justify-content:space-between;background: linear-gradient(90deg, rgba(3,6,9,0.88), rgba(3,6,9,0.45));border-bottom:1px solid rgba(255,255,255,0.03);backdrop-filter: blur(6px);}
+    .brand{display:flex;align-items:center;gap:12px}
+    header img{max-width:86px;border-radius:10px;cursor:pointer;box-shadow:0 6px 18px rgba(2,6,8,0.6)}
+    header h1{font-size:20px;color:var(--accent-2);margin:0;font-weight:800}
+
+    .controls{display:flex;align-items:center;gap:10px}
+    .icon-btn{display:inline-flex;align-items:center;gap:8px;background: linear-gradient(180deg, var(--glass), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:10px;color:var(--muted);cursor:pointer;font-weight:700;transition:all var(--transition);box-shadow: 0 6px 22px rgba(0,0,0,0.45)}
+    .icon-btn:hover{ transform:translateY(-3px); color:#071014; background:linear-gradient(90deg,var(--accent-2),var(--accent)) }
+
+    .top-tabs{max-width:var(--max-width);margin:10px auto 6px;display:flex;gap:8px;align-items:center;justify-content:flex-start;padding:8px 6px;position:sticky;top:64px;z-index:135;background:transparent;border-radius:12px}
+    .top-tab{padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:800;background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.03);transition:all var(--transition)}
+    .top-tab.active{background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#071014;box-shadow:0 14px 36px rgba(38,166,154,0.06);transform:translateY(-2px)}
+
+    .search-bar{padding:12px;max-width:var(--max-width);margin:10px auto 0 auto;text-align:center;position:relative;z-index:120}
+    .search-bar input{padding:12px 14px;width:100%;max-width:520px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));color:var(--text);font-size:14px;outline:none;transition:box-shadow .18s}
+    .search-bar input:focus{ box-shadow:0 8px 24px rgba(38,166,154,0.06); border-color: rgba(77,182,172,0.9) }
+
+    /* grids */
+    .channel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;padding:12px;max-width:var(--max-width);margin:12px auto 80px;position:relative;z-index:20}
+    .channel-card, .news-card{background:linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.006));border:1px solid rgba(255,255,255,0.03);border-radius:var(--card-radius);padding:12px;text-align:center;position:relative;transition:transform .22s var(--transition), box-shadow .22s;overflow:visible;cursor:default}
+    .channel-card:hover, .news-card:hover{ transform:translateY(-8px); box-shadow: 0 18px 48px rgba(8,12,16,0.6) }
+    .logo{width:58px;height:58px;object-fit:contain;border-radius:10px;margin:0 auto 8px;padding:6px;background:rgba(255,255,255,0.01)}
+    .channel-card h3, .news-card h3{font-size:15px;margin:6px 0 8px 0;color:var(--text);font-weight:800}
+    .channel-card p, .news-card p{font-size:12px;color:var(--muted);margin:4px 0}
+
+    .live-tag{position:absolute;top:10px;left:10px;background:var(--accent);color:#071014;font-size:11px;padding:4px 7px;border-radius:8px;font-weight:800}
+    .fav-btn{position:absolute;top:10px;right:10px;background:transparent;border:none;font-size:18px;color:rgba(255,255,255,0.36);cursor:pointer;transition:transform var(--transition)}
+    .fav-btn.is-fav{color:gold;transform:scale(1.06)}
+
+    /* iframe wrappers kept for matches (unchanged) */
+    .iframe-wrapper{width:100%;max-width:var(--max-width);height:calc(60vh + 40px);margin:18px auto 60px;border-radius:14px;overflow:hidden;position:relative;background:linear-gradient(180deg, rgba(4,6,8,0.5), rgba(7,10,12,0.25));border:1px solid rgba(255,255,255,0.03);z-index:30;box-shadow:0 18px 54px rgba(2,6,8,0.6)}
+    .iframe-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer}
+    .iframe-frame{width:100%;height:100%;border:0;display:block;background:transparent;position:relative;transform:translateY(var(--iframe-shift));filter:contrast(1) saturate(1)}
+    .iframe-logo-cover{position:absolute;top:6px;left:50%;transform:translateX(-50%) translateY(-6px);width:160px;height:64px;background:transparent;z-index:90;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:visible}
+    .iframe-logo-cover img{width:auto;height:92%;object-fit:contain;display:block}
+
+    /* news grid */
+    #newsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;padding:12px;max-width:var(--max-width);margin:12px auto 80px;position:relative;z-index:20}
+
+    .news-card img{width:100%;height:150px;object-fit:cover;border-radius:10px;margin-bottom:8px;display:block}
+
+    /* player modal and spinner (unchanged) */
+    #playerModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(2,6,8,0.78), rgba(2,6,8,0.9));z-index:13000;padding:12px}
+    #playerInner{width:100%;max-width:980px;height:56vh;background:#000;border-radius:12px;overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.03);display:flex;flex-direction:column;align-items:stretch}
+    .controls-row{position:absolute;left:12px;top:12px;z-index:12111;display:flex;gap:8px}
+    .player-control{background:rgba(255,255,255,0.03);border:none;padding:8px 10px;border-radius:10px;color:var(--muted);font-weight:700;cursor:pointer;transition:all var(--transition)}
+    .btn-close{position:absolute; top:12px; right:12px; z-index:12110;background:rgba(229,57,53,0.95); color:#fff; border:none; padding:8px 10px; border-radius:10px; font-weight:800; cursor:pointer}
+
+    @media (max-width:820px){ .iframe-logo-cover{width:140px;height:56px} .iframe-frame{transform:translateY(calc(var(--iframe-shift) + 20px))} .iframe-wrapper{height:calc(64vh + 30px)} .channel-card{padding:10px} }
+    @media (max-width:480px){ .iframe-logo-cover{width:120px;height:48px} .iframe-frame{transform:translateY(calc(var(--iframe-shift) + 30px))} .iframe-wrapper{height:calc(72vh + 20px)} header{padding:8px} .top-tab{padding:7px 10px;font-size:13px} .search-bar input{padding:10px} }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img id="brandLogo" src="https://livetvali.neocities.org/1754740387347.jpg" alt="لوغو لايف سبورت" />
+      <h1>لايف سبورت ⚽</h1>
+    </div>
+    <div class="controls">
+      <button id="shareSite" class="icon-btn" title="مشاركة الموقع">مشاركة</button>
+      <button id="refreshBtn" class="icon-btn" title="تحديث">🔄</button>
+      <button id="settingsBtn" class="icon-btn" title="إعدادات">⚙️</button>
+    </div>
+  </header>
+
+  <div class="top-tabs" role="tablist" aria-label="تبديل العرض">
+    <button id="tabChannels" class="top-tab active">القنوات</button>
+    <button id="tabMatches" class="top-tab">جدول المباريات</button>
+    <button id="tabNews" class="top-tab">الأخبار</button>
+  </div>
+
+  <div class="search-bar" id="searchBar">
+    <input id="searchInput" type="text" placeholder="🔍 ابحث عن قناة أو خبر..." aria-label="ابحث" />
+  </div>
+
+  <section id="channelGrid" class="channel-grid" aria-live="polite"></section>
+
+  <!-- matches iframe -->
+  <div id="iframeContainer" class="iframe-wrapper" role="region" aria-label="جدول المباريات" style="display:none">
+    <div id="iframePlaceholder" class="iframe-placeholder">اضغط لعرض جدول المباريات</div>
+    <div id="iframeLogoCover" class="iframe-logo-cover" style="display:none" aria-hidden="true">
+      <img src="https://livetvali.neocities.org/1754740387347.jpg" alt="لوغو" />
+    </div>
+  </div>
+
+  <!-- news grid (new) -->
+  <section id="newsArea" style="display:none">
+    <div id="newsPlaceholder" class="iframe-placeholder" style="max-width:var(--max-width);margin:18px auto">اضغط لعرض الأخبار</div>
+    <div id="newsGrid"></div>
+  </section>
+
+  <!-- player modal -->
+  <div id="playerModal" aria-hidden="true">
+    <div id="playerInner" role="dialog" aria-modal="true" aria-label="مشغل القناة">
+      <div class="controls-row">
+        <button id="fullscreenBtn" class="player-control">ملء الشاشة</button>
+      </div>
+      <button id="btnClose" class="btn-close">إغلاق</button>
+      <div class="spinner-wrap" id="playerSpinner" aria-hidden="false" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;z-index:12102">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;color:#e6fff8">
+          <div class="spinner-circle" style="width:46px;height:46px;border-radius:50%;border:5px solid rgba(255,255,255,0.06);border-top-color:var(--accent);animation:spin 1s linear infinite;margin-bottom:8px"></div>
+          <div id="spinnerText">جارِ تحميل القناة...</div>
+        </div>
+      </div>
+      <iframe id="playerFrame" allow="autoplay; fullscreen" style="display:none;pointer-events:none"></iframe>
+      <video id="playerVideo" playsinline style="display:none;pointer-events:none" controls></video>
+    </div>
+  </div>
+
+<script>
+/* ===================== إعدادات وروابط ===================== */
+/* رابط JSON من الشيت (gviz) — عدله لو غيرت الشيت أو الـ gid */
+const NEWS_JSON_URL = "https://docs.google.com/spreadsheets/d/1od6Iwawx1CIMjqeZ8GPgiL0RX8QkWEApn1KUTjSfCcw/gviz/tq?tqx=out:json&gid=0";
+
+/* ---------------- القنوات (نفس ما عندك) ---------------- */
+const channels = [
+  { name: 'live tv 1', quality: 'HD', url: 'https://www.youtube.com/embed/AWfthXX9NwE?autoplay=1&controls=1', type: 'youtube' },
+  { name: 'live tv 2', quality: 'HD', url: 'https://svs.itworkscdn.net:443/smc4sportslive/smc4tv.smil/smc4sportspublish/smc4tv_source/chunks.m3u8', type: 'hls' },
+  { name: 'live tv 3', quality: 'HD', url: 'https://stream.sainaertebat.com/hls2/tv3test.m3u8', type: 'hls' },
+  { name: 'live tv 4', quality: 'HD', url: 'https://cdn.karwan.tv/nrt-sport/tracks-v1a1/mono.m3u8', type: 'hls' },
+  { name: 'live tv 5', quality: 'HD', url: 'https://solhtvhls.wns.live/hls/stream.m3u8', type: 'hls' }
+];
+
+/* ---------------- helpers storage ---------------- */
+function loadJSON(k, fallback){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):fallback; }catch(e){return fallback} }
+function saveJSON(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+/* favorites */
+let favorites = loadJSON('ls_favs', []);
+
+/* ---------------- DOM refs ---------------- */
+const container = document.getElementById('channelGrid');
+const searchInput = document.getElementById('searchInput');
+const tabChannels = document.getElementById('tabChannels');
+const tabMatches = document.getElementById('tabMatches');
+const tabNews = document.getElementById('tabNews');
+const iframeContainer = document.getElementById('iframeContainer');
+const iframePlaceholder = document.getElementById('iframePlaceholder');
+const iframeLogoCover = document.getElementById('iframeLogoCover');
+
+const newsArea = document.getElementById('newsArea');
+const newsGrid = document.getElementById('newsGrid');
+const newsPlaceholder = document.getElementById('newsPlaceholder');
+const newsLogoCover = document.getElementById('newsLogoCover');
+
+/* player modal refs */
+const playerModal = document.getElementById('playerModal');
+const playerInner = document.getElementById('playerInner');
+const playerFrame = document.getElementById('playerFrame');
+const playerVideo = document.getElementById('playerVideo');
+const spinnerWrap = document.getElementById('playerSpinner');
+const spinnerText = document.getElementById('spinnerText');
+const btnClose = document.getElementById('btnClose');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+/* ---------------- favorite helpers ---------------- */
+function isFav(url){ return favorites.indexOf(url) !== -1; }
+function addFav(url){ if(!isFav(url)){ favorites.unshift(url); saveJSON('ls_favs', favorites); } }
+function removeFav(url){ const i=favorites.indexOf(url); if(i!==-1){ favorites.splice(i,1); saveJSON('ls_favs', favorites); } }
+function toggleFavByUrl(url){ if(isFav(url)) removeFav(url); else addFav(url); renderChannels(); }
+
+/* ---------------- render channels ---------------- */
+function sortedChannelsForRender(originalList){
+  const favOrdered = favorites.map(u => originalList.find(ch => ch.url === u)).filter(Boolean);
+  const remaining = originalList.filter(ch => !favorites.includes(ch.url));
+  return favOrdered.concat(remaining);
+}
+
+function escapeHtml(s){ return (s+'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
+
+function renderChannels(list = channels){
+  const toRender = sortedChannelsForRender(list);
+  container.innerHTML = '';
+  toRender.forEach((ch, idx) => {
+    const card = document.createElement('div');
+    card.className = 'channel-card';
+    card.setAttribute('data-url', ch.url);
+    card.innerHTML = `
+      <button class="fav-btn ${isFav(ch.url)?'is-fav':''}" aria-label="إضافة للمفضلة">★</button>
+      <div class="live-tag">${idx+1}</div>
+      <img loading="lazy" class="logo" src="https://livetvali.neocities.org/1754740387347.jpg" alt="logo">
+      <h3>${escapeHtml(ch.name)}</h3>
+      <p>${escapeHtml(ch.quality)} • ${escapeHtml(ch.type.toUpperCase())}</p>
+      <div style="margin-top:10px"><button class="play" data-url="${encodeURIComponent(ch.url)}" data-type="${ch.type}">مشاهدة</button></div>
+    `;
+    container.appendChild(card);
+  });
+
+  // handlers
+  container.querySelectorAll('.play').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const url = decodeURIComponent(e.currentTarget.dataset.url);
+      const type = e.currentTarget.dataset.type;
+      openWithSpinner(url, type);
+    });
+  });
+  container.querySelectorAll('.fav-btn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const card = e.currentTarget.closest('.channel-card');
+      const url = card.dataset.url;
+      toggleFavByUrl(url);
+    });
+  });
+}
+
+/* ---------------- spinner & hls loaders ---------------- */
+function showSpinner(text='جارِ تحميل القناة...'){ spinnerText.textContent = text; if(document.getElementById('playerSpinner')) document.getElementById('playerSpinner').style.display='flex'; }
+function hideSpinner(){ if(document.getElementById('playerSpinner')) document.getElementById('playerSpinner').style.display='none'; }
+
+let hlsLoaded=false;
+function loadHls(cb){ if(hlsLoaded){ cb(); return; } const s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/hls.js@latest'; s.onload=()=>{ hlsLoaded=true; cb(); }; s.onerror=()=>{ hlsLoaded=false; cb(); }; document.body.appendChild(s); }
+
+/* ---------------- open player (same) ---------------- */
+function openWithSpinner(url,type){ showSpinner(); setTimeout(()=> openPlayer(url,type),120); }
+function openPlayer(url,type){
+  const t = (type==='youtube' || /youtube\.com|youtu\.be/.test(url))? 'youtube' : type;
+  playerFrame.style.display='none'; playerFrame.src='about:blank'; playerVideo.style.display='none';
+  playerModal.style.display='flex'; playerModal.setAttribute('aria-hidden','false'); showSpinner();
+
+  if(t==='youtube'){
+    let embed = url;
+    try{
+      if(/watch\?v=/.test(url)) embed = `https://www.youtube.com/embed/${new URL(url).searchParams.get('v')}?rel=0&autoplay=1&controls=1`;
+      else if(/youtu\.be\//.test(url)){ const m=url.match(/youtu\.be\/([^?&]+)/); if(m) embed=`https://www.youtube.com/embed/${m[1]}?rel=0&autoplay=1&controls=1`; }
+    }catch(e){}
+    playerFrame.src = embed; playerFrame.style.display='block'; playerFrame.onload=()=> hideSpinner(); setTimeout(()=> hideSpinner(),9000);
+    return;
+  }
+
+  if(t==='hls' || /\.m3u8(\?|$)/i.test(url)){
+    loadHls(()=>{
+      if(window.Hls && Hls.isSupported()){
+        if(window._currentHls){ try{ window._currentHls.destroy(); }catch(e){} window._currentHls=null; }
+        window._currentHls = new Hls();
+        window._currentHls.loadSource(url);
+        window._currentHls.attachMedia(playerVideo);
+        playerVideo.style.display='block'; playerVideo.controls=true;
+        window._currentHls.on(Hls.Events.MANIFEST_PARSED, ()=> playerVideo.play().then(()=> hideSpinner()).catch(()=> hideSpinner()));
+        window._currentHls.on(Hls.Events.ERROR, (evt,data)=>{ if(data && data.fatal){ try{ window._currentHls.destroy(); }catch(e){} window._currentHls=null; hideSpinner(); alert('تعذر التشغيل'); }});
+        return;
+      }
+      if(playerVideo.canPlayType('application/vnd.apple.mpegurl')){
+        playerVideo.src=url; playerVideo.style.display='block'; playerVideo.addEventListener('playing',()=> hideSpinner()); playerVideo.play().catch(()=> hideSpinner()); return;
+      }
+      hideSpinner(); window.open(url,'_blank','noopener');
+    });
+    return;
+  }
+
+  hideSpinner(); window.open(url,'_blank','noopener');
+}
+
+/* fullscreen helpers */
+async function enterFullscreenAndLock(){
+  try{ if(!document.fullscreenElement) await playerInner.requestFullscreen({ navigationUI: 'hide' }); if(screen.orientation && screen.orientation.lock){ try{ await screen.orientation.lock('landscape-primary'); }catch(e){ try{ await screen.orientation.lock('landscape'); }catch(_){} } } }catch(err){ console.warn('enterFullscreenAndLock error', err); alert('تعذر الدخول بملء الشاشة أو قفل الاتجاه على جهازك.'); }
+}
+async function exitFullscreenAndUnlock(){ try{ if(document.fullscreenElement) await document.exitFullscreen(); if(screen.orientation && screen.orientation.unlock){ try{ screen.orientation.unlock(); }catch(e){} } }catch(err){ console.warn('exitFullscreenAndUnlock error', err); } }
+function updateFullscreenButtonText(){ if(document.fullscreenElement) fullscreenBtn.textContent = 'خروج من ملء الشاشة'; else fullscreenBtn.textContent = 'ملء الشاشة'; }
+document.addEventListener('fullscreenchange', () => { updateFullscreenButtonText(); if(!document.fullscreenElement){ try{ if(screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); }catch(e){} } });
+fullscreenBtn.addEventListener('click', async ()=> { if(document.fullscreenElement) await exitFullscreenAndUnlock(); else await enterFullscreenAndLock(); updateFullscreenButtonText(); });
+
+function closePlayer(){
+  try{ if(document.fullscreenElement) exitFullscreenAndUnlock(); }catch(e){}
+  try{ playerFrame.src='about:blank'; playerFrame.style.display='none'; }catch(e){}
+  try{ playerVideo.pause(); playerVideo.removeAttribute('src'); playerVideo.style.display='none'; }catch(e){}
+  if(window._currentHls){ try{ window._currentHls.destroy(); }catch(e){} window._currentHls=null; }
+  playerModal.style.display='none'; playerModal.setAttribute('aria-hidden','true'); hideSpinner();
+}
+btnClose.addEventListener('click', closePlayer);
+playerModal.addEventListener('click', (ev)=>{ if(ev.target===playerModal) closePlayer(); });
+window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closePlayer(); });
+
+/* ---------------- matches iframe creator ---------------- */
+function createMatchesIframe(){
+  if(document.getElementById('matchesFrame')) return;
+  const f = document.createElement('iframe');
+  f.id='matchesFrame';
+  f.src='https://www.btolat.com/matches-center';
+  f.allowFullscreen=true; f.referrerPolicy='no-referrer';
+  f.className='iframe-frame';
+  iframeContainer.innerHTML=''; iframeContainer.appendChild(f); iframeContainer.appendChild(iframeLogoCover); iframeLogoCover.style.display='flex';
+}
+
+/* ---------------- news: fetch from gviz and render as grid ---------------- */
+let newsCache = [];
+async function fetchNews(){
+  try{
+    const res = await fetch(NEWS_JSON_URL);
+    const text = await res.text();
+    // النص يحوي تعليق مُسبق: نبحث أول علامة { لتحويله
+    const json = JSON.parse(text.slice(text.indexOf('{')));
+    const rows = json.table.rows || [];
+    // توقع ترتيب الأعمدة: A=title, B=description, C=link, D=image
+    const posts = rows.map(r => {
+      return {
+        title: r.c[0] && r.c[0].v ? r.c[0].v : '',
+        desc: r.c[1] && r.c[1].v ? r.c[1].v : '',
+        link: r.c[2] && r.c[2].v ? r.c[2].v : '#',
+        img: r.c[3] && r.c[3].v ? r.c[3].v : ''
+      };
+    });
+    newsCache = posts;
+    return posts;
+  }catch(err){
+    console.warn('fetchNews error', err);
+    return [];
+  }
+}
+
+function renderNews(posts){
+  newsGrid.innerHTML = '';
+  if(!posts || posts.length===0){
+    newsGrid.innerHTML = '<div style="max-width:var(--max-width);margin:18px auto;color:var(--muted);text-align:center">لا توجد أخبار حالياً</div>';
+    return;
+  }
+  posts.forEach((p, idx) => {
+    const card = document.createElement('article');
+    card.className = 'news-card';
+    card.innerHTML = `
+      ${p.img ? `<img loading="lazy" src="${p.img}" alt="${escapeHtml(p.title)}">` : ''}
+      <h3>${escapeHtml(p.title)}</h3>
+      <p style="min-height:36px;color:var(--muted)">${escapeHtml(p.desc)}</p>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
+        <a class="icon-btn" href="${p.link || '#'}" target="_blank" rel="noopener">اقرأ</a>
+      </div>
+    `;
+    newsGrid.appendChild(card);
+  });
+}
+
+/* ------------------- tabs logic (channels / matches / news) ------------------- */
+tabChannels.addEventListener('click', ()=>{
+  tabChannels.classList.add('active'); tabMatches.classList.remove('active'); tabNews.classList.remove('active');
+  container.style.display='grid'; iframeContainer.style.display='none'; newsArea.style.display='none'; document.getElementById('searchBar').style.display='block';
+  history.pushState({view:'channels'}, '', '#channels');
+});
+
+tabMatches.addEventListener('click', ()=>{
+  tabMatches.classList.add('active'); tabChannels.classList.remove('active'); tabNews.classList.remove('active');
+  container.style.display='none'; iframeContainer.style.display='block'; newsArea.style.display='none'; document.getElementById('searchBar').style.display='none';
+  createMatchesIframe(); history.pushState({view:'matches'}, '', '#matches');
+});
+
+tabNews.addEventListener('click', async ()=>{
+  tabNews.classList.add('active'); tabChannels.classList.remove('active'); tabMatches.classList.remove('active');
+  container.style.display='none'; iframeContainer.style.display='none'; newsArea.style.display='block'; document.getElementById('searchBar').style.display='none';
+  // جلب الأخبار وعرضها (خَفّف العمل على الأجهزة الضعيفة: جلب مرة واحدة وcache)
+  if(newsCache.length === 0){
+    newsPlaceholder.textContent = 'جارِ تحميل الأخبار...';
+    const posts = await fetchNews();
+    renderNews(posts);
+    newsPlaceholder.style.display = 'none';
+  }
+  history.pushState({view:'news'}, '', '#news');
+});
+
+newsPlaceholder.addEventListener('click', ()=> tabNews.click());
+iframePlaceholder.addEventListener('click', ()=> tabMatches.click());
+
+/* ---------------- search (مشترك بين القنوات والأخبار) ---------------- */
+function debounce(fn, wait=180){ let t=null; return (...a)=>{ clearTimeout(t); t=setTimeout(()=> fn(...a), wait); }; }
+const doSearch = debounce(()=> {
+  const q = (searchInput.value||'').toLowerCase().trim();
+  // فلتر القنوات على الاسم
+  renderChannels(channels.filter(c => c.name.toLowerCase().includes(q)));
+  // لو كنا في صفحة الأخبار: فلتر الأخبار حسب العنوان والوصف
+  if(tabNews.classList.contains('active') && newsCache.length){
+    const filtered = newsCache.filter(p => (p.title + ' ' + p.desc).toLowerCase().includes(q));
+    renderNews(filtered);
+  }
+}, 180);
+searchInput.addEventListener('input', doSearch);
+
+/* ---------------- share button ---------------- */
+document.getElementById('shareSite').addEventListener('click', async ()=>{
+  const url = location.href;
+  try{ if(navigator.share){ await navigator.share({ title:'لايف سبورت', url }); } else { await navigator.clipboard.writeText(url); alert('تم نسخ رابط الموقع'); } }catch(e){ try{ await navigator.clipboard.writeText(url); alert('تم نسخ رابط الموقع'); }catch(_){ alert('تعذر المشاركة'); } }
+});
+
+/* ---------------- init ---------------- */
+document.addEventListener('DOMContentLoaded', ()=>{
+  renderChannels();
+  container.style.display='grid';
+  iframeContainer.style.display='none';
+  newsArea.style.display='none';
+  tabChannels.classList.add('active');
+  // افتح التبويب حسب الهش لو وُجد
+  const h = location.hash.replace('#','');
+  if(h === 'matches') tabMatches.click();
+  else if(h === 'news') tabNews.click();
+});
+</script>
+</body>
+</html>
